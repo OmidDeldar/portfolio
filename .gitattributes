@@ -1,0 +1,16 @@
+# Normalise line endings. Everything is stored LF in the repo, which matters
+# because these sources get built inside Linux containers.
+* text=auto eol=lf
+
+# Shell scripts must keep LF or they break in the container.
+*.sh text eol=lf
+
+# Binary files git should never touch.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.woff binary
+*.woff2 binary

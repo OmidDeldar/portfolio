@@ -1,0 +1,74 @@
+.edu-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+  gap: 18px;
+}
+
+.edu {
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+}
+
+.edu-cap {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 20px;
+  border-radius: 11px;
+  color: var(--accent);
+  background: rgba(var(--accent-rgb), 0.1);
+  border: 1px solid var(--line);
+}
+
+.edu-degree {
+  font-size: 1.04rem;
+  line-height: 1.35;
+  color: var(--text);
+}
+
+.edu-inst {
+  margin-top: 9px;
+  font-size: 0.92rem;
+  color: var(--accent-soft);
+}
+
+.edu-meta {
+  margin-top: 5px;
+  font-family: var(--font-mono);
+  font-size: 0.73rem;
+  color: var(--text-faint);
+}
+
+.edu-sep {
+  margin: 0 8px;
+}
+
+.edu-grade {
+  margin-top: 18px;
+  align-self: flex-start;
+  padding: 6px 13px;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--text);
+  background: rgba(var(--accent-rgb), 0.1);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+}
+
+.edu-honours {
+  display: flex;
+  gap: 9px;
+  margin-top: 16px;
+  padding-top: 15px;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  font-size: 0.83rem;
+  line-height: 1.6;
+  color: var(--text-dim);
+}
+
+.edu-honours span {
+  color: var(--warn);
+  flex-shrink: 0;
+}

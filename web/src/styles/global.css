@@ -1,0 +1,439 @@
+/* ============================================================================
+   Omid Deldar — portfolio design system
+   Black canvas, violet light. Everything is driven by the tokens below, so
+   `theme toxic` in the terminal only has to swap four custom properties.
+   ========================================================================= */
+
+:root {
+  /* --- surfaces ------------------------------------------------------- */
+  --bg: #050308;
+  --bg-raise: #0a0612;
+  --bg-panel: #0d0817;
+  --line: rgba(168, 85, 247, 0.16);
+  --line-strong: rgba(168, 85, 247, 0.34);
+
+  /* --- accent (swapped by the `theme` command) ------------------------ */
+  --accent: #a855f7;
+  --accent-soft: #c084fc;
+  --accent-deep: #7c3aed;
+  --accent-rgb: 168, 85, 247;
+
+  /* --- secondary accent, used sparingly for contrast ------------------ */
+  --cyan: #22d3ee;
+  --ok: #4ade80;
+  --warn: #fbbf24;
+  --err: #fb7185;
+
+  /* --- text ------------------------------------------------------------ */
+  --text: #ece7f7;
+  --text-dim: #a79ec4;
+  --text-faint: #6b6386;
+
+  /* --- type ------------------------------------------------------------ */
+  --font-display: 'Space Grotesk', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  /* --- layout ---------------------------------------------------------- */
+  --max: 1180px;
+  --gutter: 24px;
+  --radius: 14px;
+
+  /* --- motion ---------------------------------------------------------- */
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur: 0.6s;
+
+  color-scheme: dark;
+}
+
+:root[data-theme='toxic'] {
+  --accent: #4ade80;
+  --accent-soft: #86efac;
+  --accent-deep: #16a34a;
+  --accent-rgb: 74, 222, 128;
+  --line: rgba(74, 222, 128, 0.16);
+  --line-strong: rgba(74, 222, 128, 0.34);
+}
+
+:root[data-theme='amber'] {
+  --accent: #fbbf24;
+  --accent-soft: #fcd34d;
+  --accent-deep: #d97706;
+  --accent-rgb: 251, 191, 36;
+  --line: rgba(251, 191, 36, 0.16);
+  --line-strong: rgba(251, 191, 36, 0.34);
+}
+
+:root[data-theme='ice'] {
+  --accent: #38bdf8;
+  --accent-soft: #7dd3fc;
+  --accent-deep: #0284c7;
+  --accent-rgb: 56, 189, 248;
+  --line: rgba(56, 189, 248, 0.16);
+  --line-strong: rgba(56, 189, 248, 0.34);
+}
+
+/* ============================================================== reset */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 90px;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 16px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+
+body.is-locked {
+  overflow: hidden;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  margin: 0;
+  line-height: 1.1;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: var(--accent-soft);
+  text-decoration: none;
+  transition: color 0.2s var(--ease);
+}
+
+a:hover {
+  color: var(--text);
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+::selection {
+  background: rgba(var(--accent-rgb), 0.35);
+  color: #fff;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(var(--accent-deep), var(--accent));
+  border-radius: 10px;
+  border: 2px solid var(--bg);
+}
+
+/* ============================================================ ambience */
+
+/* The fixed canvas lives behind everything. */
+.bg-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Perspective grid floor + vignette + faint scanlines. */
+.bg-fx {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.bg-fx::before {
+  /* vignette */
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(120% 80% at 50% -10%, rgba(var(--accent-rgb), 0.18), transparent 60%),
+    radial-gradient(90% 60% at 50% 110%, rgba(var(--accent-rgb), 0.1), transparent 65%),
+    radial-gradient(100% 100% at 50% 50%, transparent 40%, rgba(0, 0, 0, 0.85) 100%);
+}
+
+.bg-fx::after {
+  /* scanlines */
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.016) 0px,
+    rgba(255, 255, 255, 0.016) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  opacity: 0.6;
+}
+
+.grid-floor {
+  position: fixed;
+  left: 50%;
+  bottom: -30vh;
+  width: 260vw;
+  height: 70vh;
+  transform: translateX(-50%) perspective(340px) rotateX(62deg);
+  background-image:
+    linear-gradient(to right, rgba(var(--accent-rgb), 0.24) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(var(--accent-rgb), 0.24) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: linear-gradient(to top, #000 0%, transparent 82%);
+  -webkit-mask-image: linear-gradient(to top, #000 0%, transparent 82%);
+  opacity: 0.5;
+  z-index: 1;
+  pointer-events: none;
+  animation: grid-drift 9s linear infinite;
+}
+
+@keyframes grid-drift {
+  to {
+    background-position: 0 64px;
+  }
+}
+
+/* ============================================================== layout */
+
+#root {
+  position: relative;
+  z-index: 2;
+}
+
+.shell {
+  width: 100%;
+  max-width: var(--max);
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+}
+
+section {
+  position: relative;
+  padding: 108px 0;
+}
+
+@media (max-width: 720px) {
+  section {
+    padding: 72px 0;
+  }
+}
+
+/* ======================================================= section header */
+
+.sec-head {
+  margin-bottom: 52px;
+}
+
+.sec-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 16px;
+}
+
+.sec-kicker::before {
+  content: '';
+  width: 26px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent));
+}
+
+.sec-title {
+  font-size: clamp(1.9rem, 4.4vw, 2.9rem);
+  font-weight: 600;
+}
+
+.sec-title em {
+  font-style: normal;
+  color: var(--accent-soft);
+  text-shadow: 0 0 26px rgba(var(--accent-rgb), 0.55);
+}
+
+.sec-sub {
+  margin-top: 14px;
+  max-width: 62ch;
+  color: var(--text-dim);
+}
+
+/* ============================================================== panels */
+
+.panel {
+  position: relative;
+  background:
+    linear-gradient(180deg, rgba(var(--accent-rgb), 0.05), rgba(255, 255, 255, 0.012)),
+    var(--bg-panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  transition:
+    border-color 0.35s var(--ease),
+    transform 0.35s var(--ease),
+    box-shadow 0.35s var(--ease);
+}
+
+.panel:hover {
+  border-color: var(--line-strong);
+  box-shadow: 0 18px 50px -24px rgba(var(--accent-rgb), 0.6);
+}
+
+/* Clipped corner — the little detail that reads as "sci-fi UI". */
+.clip-corner {
+  clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px));
+}
+
+/* ============================================================= buttons */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 13px 26px;
+  font-family: var(--font-mono);
+  font-size: 0.86rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  border-radius: 8px;
+  border: 1px solid var(--line-strong);
+  color: var(--text);
+  background: rgba(var(--accent-rgb), 0.08);
+  position: relative;
+  overflow: hidden;
+  transition:
+    transform 0.25s var(--ease),
+    box-shadow 0.25s var(--ease),
+    background 0.25s var(--ease);
+}
+
+.btn::after {
+  /* sweeping shine */
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 20%, rgba(255, 255, 255, 0.22), transparent 80%);
+  transform: translateX(-130%);
+  transition: transform 0.7s var(--ease);
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  background: rgba(var(--accent-rgb), 0.16);
+  box-shadow: 0 12px 34px -14px rgba(var(--accent-rgb), 0.9);
+}
+
+.btn:hover::after {
+  transform: translateX(130%);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent-deep), var(--accent));
+  border-color: transparent;
+  color: #fff;
+  font-weight: 600;
+}
+
+.btn-ghost {
+  background: transparent;
+}
+
+/* ================================================================ tags */
+
+.tag {
+  display: inline-block;
+  padding: 4px 11px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  color: var(--accent-soft);
+  background: rgba(var(--accent-rgb), 0.09);
+  border: 1px solid rgba(var(--accent-rgb), 0.2);
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.tag-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* ============================================================== reveal */
+
+.reveal {
+  opacity: 0;
+  transform: translateY(26px);
+  transition:
+    opacity 0.75s var(--ease),
+    transform 0.75s var(--ease);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+
+.reveal.is-in {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .reveal {
+    opacity: 1;
+    transform: none;
+  }
+
+  .grid-floor {
+    animation: none;
+  }
+}

@@ -1,0 +1,72 @@
+.skills-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 18px;
+}
+
+.skill-group {
+  padding: 24px 22px;
+}
+
+.skill-head {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding-bottom: 16px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid var(--line);
+  color: var(--accent);
+}
+
+.skill-cat {
+  font-size: 1.02rem;
+  color: var(--text);
+}
+
+.skill-list {
+  display: grid;
+  gap: 15px;
+}
+
+.skill-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 7px;
+}
+
+.skill-name {
+  font-size: 0.86rem;
+  color: var(--text-dim);
+}
+
+.skill-pct {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.skill-track {
+  height: 5px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.05);
+  overflow: hidden;
+}
+
+.skill-fill {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--accent-deep), var(--accent-soft));
+  box-shadow: 0 0 12px rgba(var(--accent-rgb), 0.75);
+  transition: width 1.15s var(--ease);
+  transition-delay: var(--fill-delay, 0ms);
+}
+
+/* Bars fill only once the card itself has revealed, so the two
+   animations read as one movement rather than competing. */
+.skill-group.is-in .skill-fill {
+  width: var(--level);
+}

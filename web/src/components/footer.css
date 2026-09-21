@@ -1,0 +1,112 @@
+.foot {
+  position: relative;
+  padding: 50px 0 30px;
+  border-top: 1px solid var(--line);
+  background: linear-gradient(to bottom, transparent, rgba(var(--accent-rgb), 0.04));
+}
+
+.foot-inner {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr 1fr;
+  gap: 32px;
+  align-items: start;
+}
+
+.foot-name {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.foot-line {
+  margin-top: 5px;
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  color: var(--text-faint);
+}
+
+.foot-mid {
+  text-align: center;
+}
+
+.foot-built {
+  font-size: 0.82rem;
+  color: var(--text-dim);
+}
+
+.foot-api {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-faint);
+}
+
+.foot-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-faint);
+}
+
+.foot-dot-online {
+  background: var(--ok);
+  box-shadow: 0 0 8px var(--ok);
+}
+
+.foot-dot-offline {
+  background: var(--warn);
+}
+
+.foot-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.foot-links {
+  display: flex;
+  gap: 18px;
+}
+
+.foot-links a {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--text-dim);
+}
+
+.foot-links a:hover {
+  color: var(--accent-soft);
+}
+
+.foot-top {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-faint);
+}
+
+.foot-copy {
+  margin-top: 34px;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-faint);
+}
+
+@media (max-width: 760px) {
+  .foot-inner {
+    grid-template-columns: 1fr;
+    gap: 24px;
+    text-align: center;
+  }
+
+  .foot-right {
+    align-items: center;
+  }
+
+  .foot-links {
+    justify-content: center;
+  }
+}
