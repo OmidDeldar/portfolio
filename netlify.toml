@@ -1,0 +1,64 @@
+# Netlify deployment for the front end.
+#
+# Only web/ is published. The NestJS API is not deployed here — the site falls
+# back to its bundled data and runs the terminal engine in the browser, so it
+# is fully functional either way. See the commented proxy block at the bottom
+# for wiring the API in later without touching the front-end code.
+
+[build]
+  # Build from the repository root, not web/, so the build can run the shared
+  # file sync itself. That way a deploy can never ship stale content because
+  # someone edited api/src/data/portfolio.data.ts and forgot `npm run sync`.
+  command = "node scripts/sync-shared.mjs && npm ci --prefix web && npm run build --prefix web"
+  publish = "web/dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+  # VITE_API_URL is deliberately unset: with no API deployed the site runs in
+  # local mode. Set it here (or in the Netlify UI) when you have an API host.
+
+# --------------------------------------------------------------- redirects
+#
+# Order matters: Netlify applies the first matching rule, and static files are
+# always served before any rule runs.
+
+# When the API is live, uncomment this and set the URL. It MUST stay above the
+# SPA fallback below, or /api/* gets swallowed by index.html.
+# [[redirects]]
+#   from = "/api/*"
+#   to = "https://your-api-host.example.com/api/:splat"
+#   status = 200
+#   force = true
+
+# SPA fallback. Harmless for /api/* while no proxy exists: the request returns
+# index.html, the JSON parse fails, and the client drops into local mode —
+# which is exactly the intended behaviour.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# ----------------------------------------------------------------- headers
+# Mirrors the security headers in web/nginx.conf, so the hosted site and the
+# Docker deployment behave identically.
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "SAMEORIGIN"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+
+# Vite fingerprints these filenames, so they can be cached indefinitely.
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# index.html must never be cached, or visitors keep loading an old build that
+# points at asset filenames which no longer exist.
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "no-cache"

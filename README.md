@@ -278,20 +278,39 @@ The two halves deploy independently. The Docker setup above is also the simplest
 production deployment: one `docker compose up -d` on any VPS puts the whole
 thing behind nginx on port 8080.
 
-### Front end (Vercel / Netlify / GitHub Pages / Cloudflare Pages)
+### Front end (Netlify or Vercel — config is in the repo)
+
+Both `netlify.toml` and `vercel.json` are committed and ready. Each host ignores
+the other's file, so you can pick either (or switch) with no changes:
+
+1. Import `OmidDeldar/portfolio` on [Netlify](https://app.netlify.com/start) or
+   [Vercel](https://vercel.com/new).
+2. Accept the detected settings — the config file supplies them.
+3. Deploy.
+
+Both are configured to build **from the repository root**, not `web/`, so the
+build runs `scripts/sync-shared.mjs` itself and a deploy can never ship stale
+content. They also reproduce the security and caching headers from
+`web/nginx.conf`, so the hosted site behaves like the Docker one.
+
+Manually, the build is:
 
 ```bash
-cd web && npm run build      # → web/dist
+node scripts/sync-shared.mjs && npm ci --prefix web && npm run build --prefix web
+# → web/dist
 ```
 
-Publish `web/dist`. Set one environment variable **only if** you deployed the
-API somewhere:
+`VITE_API_URL` is deliberately unset, so the site runs in local mode: fully
+complete, just not live. When you have an API host, set it as an environment
+variable **and** uncomment the `/api/*` proxy block in `netlify.toml` (it must
+stay above the SPA fallback, or `/api` gets swallowed by `index.html`).
 
-```
-VITE_API_URL=https://your-api-host.com
-```
+### GitHub Pages
 
-Leave it unset and the site runs in local mode — still complete, just not live.
+Works, but it's the weakest option here: Pages cannot proxy, so adding the API
+later means pointing `VITE_API_URL` at another domain and configuring
+`CORS_ORIGINS` on the API. Netlify and Vercel can proxy, which keeps the front
+end same-origin and makes that upgrade a config line rather than a rework.
 
 ### API (Render / Railway / Fly / any VPS)
 
