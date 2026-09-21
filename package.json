@@ -14,7 +14,10 @@
     "build": "npm run sync && npm run build --prefix api && npm run build --prefix web",
     "start": "npm run start:prod --prefix api",
     "typecheck": "npm run typecheck --prefix api && npm run typecheck --prefix web",
-    "preview": "npm run preview --prefix web"
+    "preview": "npm run preview --prefix web",
+    "docker": "docker compose up --build",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"

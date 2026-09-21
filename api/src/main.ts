@@ -1,15 +1,24 @@
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import type { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { cors: false });
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, { cors: false });
   const logger = new Logger('Bootstrap');
 
   app.setGlobalPrefix('api');
   app.use(helmet({ contentSecurityPolicy: false }));
+
+  // Behind nginx (docker compose) or a platform router (Render, Railway, Fly),
+  // every request arrives from the proxy's address. Without this, the visitor
+  // counter would see one visitor and the rate limiter would throttle all
+  // clients against a single shared bucket.
+  if (process.env.TRUST_PROXY !== 'false') {
+    app.set('trust proxy', 1);
+  }
 
   // Allow the Vite dev server plus any origins listed in CORS_ORIGINS.
   const configured = (process.env.CORS_ORIGINS ?? '')

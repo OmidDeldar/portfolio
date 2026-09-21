@@ -1,0 +1,73 @@
+# Runs the whole portfolio with one command:
+#
+#   docker compose up --build
+#
+#   Site        http://localhost:8080
+#   Swagger UI  http://localhost:8080/api/docs   (or http://localhost:3000/api/docs)
+#
+# The browser only ever talks to :8080 — nginx proxies /api through to the API
+# container, so the front end is same-origin and CORS never applies.
+
+name: omid-portfolio
+
+services:
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    image: omid-portfolio-api:latest
+    container_name: portfolio-api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      # nginx forwards the real client IP, and the API trusts it (TRUST_PROXY).
+      # This origin list only matters for anything hitting :3000 directly.
+      CORS_ORIGINS: http://localhost:8080,http://127.0.0.1:8080
+    ports:
+      # Exposed so you can reach Swagger directly and prove the API is real.
+      # Drop this block to keep the API reachable only from inside the network.
+      - "3000:3000"
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:3000/api/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    networks:
+      - portfolio
+    security_opt:
+      - no-new-privileges:true
+
+  web:
+    build:
+      # Root context on purpose — the build runs scripts/sync-shared.mjs so the
+      # image can never ship stale content. See web/Dockerfile.
+      context: .
+      dockerfile: web/Dockerfile
+      args:
+        # Empty = same-origin via the nginx proxy below. Set this only if you
+        # host the API on a different domain.
+        VITE_API_URL: ""
+    image: omid-portfolio-web:latest
+    container_name: portfolio-web
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1/healthz"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    networks:
+      - portfolio
+    security_opt:
+      - no-new-privileges:true
+
+networks:
+  portfolio:
+    driver: bridge

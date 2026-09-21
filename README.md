@@ -20,6 +20,24 @@ Authentication successful.
 
 ## Quick start
 
+### With Docker (nothing to install but Docker)
+
+```bash
+docker compose up --build
+```
+
+| What        | URL                                 |
+| ----------- | ----------------------------------- |
+| Site        | http://localhost:8080               |
+| Swagger UI  | http://localhost:8080/api/docs      |
+| API direct  | http://localhost:3000/api           |
+
+nginx serves the built front end and proxies `/api` to the API container, so the
+browser only ever talks to one origin and CORS never applies. See
+[Docker](#docker) below for the details.
+
+### Without Docker
+
 ```bash
 npm run install:all
 npm run dev
@@ -32,8 +50,7 @@ npm run dev
 | Swagger UI  | http://localhost:3000/api/docs  |
 
 `npm run dev` runs both processes together. In development the Vite server
-proxies `/api/*` through to NestJS, so there is nothing to configure and no CORS
-to think about.
+proxies `/api/*` through to NestJS, so again there is no CORS to think about.
 
 Run them separately if you prefer:
 
@@ -69,7 +86,12 @@ portfolio/
 │       ├── data/  lib/terminal.engine.ts ← AUTO-GENERATED copies, do not edit
 │       └── styles/global.css             design tokens + themes
 │
-└── scripts/sync-shared.mjs               keeps those two copies in sync
+├── scripts/sync-shared.mjs               keeps those two copies in sync
+│
+├── api/Dockerfile                        multi-stage, non-root, healthchecked
+├── web/Dockerfile                        builds from the REPO ROOT (see Docker)
+├── web/nginx.conf                        static serving + /api proxy
+└── docker-compose.yml                    both services, one command
 ```
 
 ### Editing your content
@@ -182,9 +204,79 @@ stored.
 
 ---
 
+## Docker
+
+```bash
+docker compose up --build       # build and run
+docker compose up -d            # detached
+docker compose logs -f api      # follow the API
+docker compose ps               # health status
+docker compose down             # stop and remove
+```
+
+Two services on a private bridge network:
+
+```
+              :8080                    :3000
+  browser ──▶ portfolio-web ──▶ portfolio-api
+              nginx + static       node dist/main
+                  │
+                  └── /api/*  proxied to api:3000
+```
+
+The browser only ever hits `:8080`. nginx serves the static build and forwards
+`/api` to the API container, which means the front end is same-origin — no CORS,
+no `VITE_API_URL` to set. `:3000` is published as well, purely so you can open
+Swagger directly and prove the API is a real service; delete that `ports:` block
+in `docker-compose.yml` to keep it internal.
+
+**Images.** Both are multi-stage. The API ends at ~213 MB: a builder stage
+compiles TypeScript, a separate stage installs production dependencies only, and
+the runtime stage copies just `dist/` and those deps — the Nest CLI and
+TypeScript never reach the final image. It runs as the unprivileged `node` user
+under `dumb-init` (so `SIGTERM` reaches node and `docker compose down` is
+immediate rather than waiting out the kill timeout). The web image ends at
+~48 MB: a Node builder produces `dist/`, and only those files land in an nginx
+image. Both declare `HEALTHCHECK`s, and `web` waits for `api` to report healthy
+before starting.
+
+**The web image builds from the repository root, not from `web/`.** That is
+deliberate — the build runs `scripts/sync-shared.mjs` itself, regenerating
+`web/src/data/` and `web/src/lib/terminal.engine.ts` from the API sources. An
+image therefore cannot ship stale content because someone forgot `npm run sync`.
+
+**Pointing at an API on another host:**
+
+```bash
+docker build -f web/Dockerfile --build-arg VITE_API_URL=https://api.example.com -t portfolio-web .
+```
+
+Vite inlines env vars at build time, so this is a build argument, not a runtime
+one — changing it means rebuilding the image.
+
+### Two details worth knowing
+
+**`TRUST_PROXY`.** Behind nginx every request reaches the API from the proxy's
+address. Without `app.set('trust proxy', 1)` the visitor counter would see a
+single visitor forever and the rate limiter would throttle all clients against
+one shared bucket. It is on by default; set `TRUST_PROXY=false` only if you
+expose the API directly to the internet with no proxy in front, since trusting
+`X-Forwarded-For` from an untrusted source lets clients spoof their IP.
+
+**nginx `add_header` inheritance.** `add_header` is *not* additive across
+levels: any `location` that declares one silently discards every `add_header`
+inherited from the server block. `web/nginx.conf` works around this by using
+`expires` (a different directive, which does not break inheritance) where only
+caching is needed, and restating the security headers in the one location that
+genuinely needs its own. Worth remembering before adding a new `location`.
+
+---
+
 ## Deploying
 
-The two halves deploy independently.
+The two halves deploy independently. The Docker setup above is also the simplest
+production deployment: one `docker compose up -d` on any VPS puts the whole
+thing behind nginx on port 8080.
 
 ### Front end (Vercel / Netlify / GitHub Pages / Cloudflare Pages)
 
@@ -251,6 +343,8 @@ bundle is ~206 KB (66 KB gzipped) with no runtime dependencies beyond React.
 | `npm run sync`       | Copy shared data/engine into `web/src`        |
 | `npm run typecheck`  | `tsc --noEmit` across both                    |
 | `npm run preview`    | Serve the built front end                     |
+| `npm run docker`     | `docker compose up --build`                   |
+| `npm run docker:down`| `docker compose down`                         |
 
 ---
 

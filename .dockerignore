@@ -1,0 +1,21 @@
+# Root build context (used by web/Dockerfile).
+**/node_modules
+**/dist
+**/build
+
+.git
+.gitignore
+.gitattributes
+
+**/.env
+**/.env.local
+**/*.log
+
+**/.vscode
+**/.idea
+**/*.tsbuildinfo
+
+README.md
+docker-compose.yml
+**/Dockerfile
+**/.dockerignore
